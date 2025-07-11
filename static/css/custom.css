@@ -1,0 +1,153 @@
+/* Custom styles for the truck weighing system */
+
+/* Print styles */
+@media print {
+    .no-print {
+        display: none !important;
+    }
+    
+    .print-only {
+        display: block !important;
+    }
+    
+    body {
+        background: white !important;
+        color: black !important;
+    }
+    
+    .card {
+        border: none !important;
+        box-shadow: none !important;
+    }
+    
+    .navbar, .card-header, .card-footer, .btn {
+        display: none !important;
+    }
+}
+
+/* Ticket specific styles */
+.ticket-table td {
+    padding: 12px 15px;
+    border-bottom: 1px solid var(--bs-border-color);
+    font-size: 1.1rem;
+}
+
+.ticket-table .fw-bold {
+    background-color: var(--bs-light);
+    color: var(--bs-dark);
+}
+
+/* Form enhancements */
+.form-control:focus {
+    box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+}
+
+/* Card hover effects */
+.card:hover {
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+    transition: box-shadow 0.3s ease-in-out;
+}
+
+/* Table enhancements */
+.table-striped tbody tr:nth-of-type(odd) {
+    background-color: var(--bs-gray-100);
+}
+
+/* Statistics cards */
+.card.bg-primary,
+.card.bg-success,
+.card.bg-info,
+.card.bg-warning {
+    border: none;
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+}
+
+/* Button group spacing */
+.btn-group .btn {
+    margin-right: 0;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .table-responsive {
+        font-size: 0.875rem;
+    }
+    
+    .btn-group .btn {
+        padding: 0.25rem 0.5rem;
+        font-size: 0.875rem;
+    }
+    
+    .card-body {
+        padding: 1rem;
+    }
+}
+
+/* Loading spinner */
+.loading-spinner {
+    display: none;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 9999;
+}
+
+/* Form validation styles */
+.is-invalid {
+    border-color: #dc3545;
+}
+
+.is-valid {
+    border-color: #198754;
+}
+
+/* Custom badges */
+.badge {
+    font-size: 0.75em;
+    font-weight: 500;
+}
+
+/* Navbar brand */
+.navbar-brand {
+    font-weight: 600;
+}
+
+/* Footer */
+footer {
+    margin-top: auto;
+}
+
+/* Ensure full height layout */
+html, body {
+    height: 100%;
+}
+
+body {
+    display: flex;
+    flex-direction: column;
+}
+
+main {
+    flex: 1;
+}
+
+/* Alert customization */
+.alert {
+    border-radius: 0.5rem;
+    border: none;
+}
+
+/* Datalist styling */
+input[list] {
+    cursor: pointer;
+}
+
+/* Statistics cards hover */
+.card.bg-primary:hover,
+.card.bg-success:hover,
+.card.bg-info:hover,
+.card.bg-warning:hover {
+    transform: translateY(-2px);
+    transition: transform 0.2s ease-in-out;
+}

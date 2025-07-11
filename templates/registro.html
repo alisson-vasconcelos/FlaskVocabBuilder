@@ -1,0 +1,227 @@
+{% extends "base.html" %}
+
+{% block title %}Nova Pesagem - Sistema de Pesagem{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h4 class="mb-0"><i class="fas fa-plus"></i> Registrar Nova Pesagem</h4>
+            </div>
+            <div class="card-body">
+                <form method="POST" id="form-pesagem">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="local_carga" class="form-label">Local da Carga <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="local_carga" name="local_carga" 
+                                       required autocomplete="off" list="cidades-list"
+                                       placeholder="Ex: Guará, Ceilândia, etc.">
+                                <datalist id="cidades-list">
+                                    <!-- Lote 3 -->
+                                    <option value="Guará">
+                                    <option value="Arniqueiras">
+                                    <option value="Águas Claras">
+                                    <option value="Park Way">
+                                    <option value="Núcleo Bandeirante">
+                                    <option value="Candangolândia">
+                                    <option value="SCIA/Estrutural">
+                                    <option value="Vicente Pires">
+                                    <option value="Riacho Fundo I">
+                                    <option value="Sobradinho">
+                                    <option value="Sobradinho II">
+                                    <option value="Fercal">
+                                    <option value="Planaltina">
+                                    <option value="Arapoanga">
+                                    <option value="Paranoá">
+                                    <option value="Itapoã">
+                                    <!-- Lote 5 -->
+                                    <option value="Lago Sul">
+                                    <option value="Jardim Botânico">
+                                    <option value="São Sebastião">
+                                    <option value="Brazlândia">
+                                    <option value="Ceilândia">
+                                    <option value="Taguatinga">
+                                    <option value="Sol Nascente/Por do Sol">
+                                    <option value="Gama">
+                                    <option value="Santa Maria">
+                                    <option value="Recanto das Emas">
+                                    <option value="Água Quente">
+                                    <option value="Samambaia">
+                                    <option value="Riacho Fundo II">
+                                </datalist>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="local_descarga" class="form-label">Local da Descarga <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="local_descarga" name="local_descarga" 
+                                       required placeholder="Local onde será descarregado">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="data" class="form-label">Data <span class="text-danger">*</span></label>
+                                <input type="date" class="form-control" id="data" name="data" 
+                                       required value="{{ date.today() }}">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="placa_veiculo" class="form-label">Placa do Veículo <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="placa_veiculo" name="placa_veiculo" 
+                                       required placeholder="Ex: ABC-1234" maxlength="8" style="text-transform: uppercase;">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="motorista" class="form-label">Motorista <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="motorista" name="motorista" 
+                                       required placeholder="Nome do motorista">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="tipo_produto" class="form-label">Tipo de Produto Transportado</label>
+                                <input type="text" class="form-control" id="tipo_produto" name="tipo_produto" 
+                                       value="Triturado" readonly>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="quantidade_kg" class="form-label">Quantidade em Quilos (Kg) <span class="text-danger">*</span></label>
+                                <input type="number" class="form-control" id="quantidade_kg" name="quantidade_kg" 
+                                       required min="1" step="0.01" placeholder="Ex: 25000">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Valor Estimado da Carga</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">R$</span>
+                                    <input type="text" class="form-control" id="valor_estimado" 
+                                           readonly placeholder="Calculado automaticamente">
+                                </div>
+                                <small class="text-muted">Será calculado baseado no local da carga e peso.</small>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <a href="{{ url_for('index') }}" class="btn btn-secondary">
+                            <i class="fas fa-times"></i> Cancelar
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save"></i> Registrar Pesagem
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('form-pesagem');
+    const localCarga = document.getElementById('local_carga');
+    const quantidadeKg = document.getElementById('quantidade_kg');
+    const valorEstimado = document.getElementById('valor_estimado');
+    const placaVeiculo = document.getElementById('placa_veiculo');
+    
+    // Configurar data padrão para hoje
+    const dataInput = document.getElementById('data');
+    if (!dataInput.value) {
+        const hoje = new Date();
+        const dataFormatada = hoje.toISOString().split('T')[0];
+        dataInput.value = dataFormatada;
+    }
+    
+    // Converter placa para maiúscula
+    placaVeiculo.addEventListener('input', function() {
+        this.value = this.value.toUpperCase();
+    });
+    
+    // Calcular valor estimado
+    function calcularValorEstimado() {
+        const cidade = localCarga.value.trim();
+        const kg = parseFloat(quantidadeKg.value) || 0;
+        
+        if (cidade && kg > 0) {
+            const lote = determinarLote(cidade);
+            if (lote) {
+                const valorPorTonelada = lote === 3 ? 575.75 : 591.82;
+                const toneladas = kg / 1000;
+                const valor = toneladas * valorPorTonelada;
+                valorEstimado.value = valor.toLocaleString('pt-BR', { 
+                    minimumFractionDigits: 2, 
+                    maximumFractionDigits: 2 
+                });
+            } else {
+                valorEstimado.value = 'Cidade não encontrada';
+            }
+        } else {
+            valorEstimado.value = '';
+        }
+    }
+    
+    function determinarLote(cidade) {
+        const lote3 = ['Guará', 'Arniqueiras', 'Águas Claras', 'Park Way', 'Núcleo Bandeirante',
+                       'Candangolândia', 'SCIA/Estrutural', 'Vicente Pires', 'Riacho Fundo I',
+                       'Sobradinho', 'Sobradinho II', 'Fercal', 'Planaltina', 'Arapoanga',
+                       'Paranoá', 'Itapoã'];
+        
+        const lote5 = ['Lago Sul', 'Jardim Botânico', 'São Sebastião', 'Brazlândia', 'Ceilândia',
+                       'Taguatinga', 'Sol Nascente/Por do Sol', 'Gama', 'Santa Maria',
+                       'Recanto das Emas', 'Água Quente', 'Samambaia', 'Riacho Fundo II'];
+        
+        const cidadeNormalizada = cidade.toLowerCase();
+        
+        for (let c of lote3) {
+            if (c.toLowerCase().includes(cidadeNormalizada) || cidadeNormalizada.includes(c.toLowerCase())) {
+                return 3;
+            }
+        }
+        
+        for (let c of lote5) {
+            if (c.toLowerCase().includes(cidadeNormalizada) || cidadeNormalizada.includes(c.toLowerCase())) {
+                return 5;
+            }
+        }
+        
+        return null;
+    }
+    
+    // Eventos para recalcular valor
+    localCarga.addEventListener('input', calcularValorEstimado);
+    quantidadeKg.addEventListener('input', calcularValorEstimado);
+    
+    // Validação do formulário
+    form.addEventListener('submit', function(e) {
+        const cidade = localCarga.value.trim();
+        const lote = determinarLote(cidade);
+        
+        if (!lote) {
+            e.preventDefault();
+            alert('Por favor, selecione uma cidade válida da lista ou verifique a grafia.');
+            localCarga.focus();
+            return false;
+        }
+        
+        return true;
+    });
+});
+</script>
+{% endblock %}
