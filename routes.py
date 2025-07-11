@@ -9,8 +9,40 @@ import tempfile
 @app.route('/')
 def index():
     """Página inicial com lista de pesagens"""
-    pesagens = Pesagem.query.order_by(Pesagem.created_at.desc()).all()
-    return render_template('index.html', pesagens=pesagens)
+    # Obter parâmetros de filtro
+    data_inicio = request.args.get('data_inicio')
+    data_fim = request.args.get('data_fim')
+    lote = request.args.get('lote')
+    placa = request.args.get('placa')
+    
+    # Construir query com filtros
+    query = Pesagem.query
+    
+    if data_inicio:
+        try:
+            data_inicio_obj = datetime.strptime(data_inicio, '%Y-%m-%d')
+            query = query.filter(Pesagem.data >= data_inicio_obj)
+        except ValueError:
+            pass
+    
+    if data_fim:
+        try:
+            data_fim_obj = datetime.strptime(data_fim, '%Y-%m-%d')
+            query = query.filter(Pesagem.data <= data_fim_obj)
+        except ValueError:
+            pass
+    
+    if lote and lote.isdigit():
+        query = query.filter(Pesagem.lote == int(lote))
+    
+    if placa:
+        query = query.filter(Pesagem.placa_veiculo.ilike(f'%{placa}%'))
+    
+    pesagens = query.order_by(Pesagem.created_at.desc()).all()
+    
+    return render_template('index.html', pesagens=pesagens, 
+                         data_inicio=data_inicio, data_fim=data_fim, 
+                         lote=lote, placa=placa)
 
 @app.route('/registro', methods=['GET', 'POST'])
 def registro():
@@ -103,7 +135,36 @@ def ticket_pdf(pesagem_id):
 @app.route('/relatorio/excel')
 def relatorio_excel():
     """Gerar relatório em Excel"""
-    pesagens = Pesagem.query.order_by(Pesagem.data.desc()).all()
+    # Obter parâmetros de filtro
+    data_inicio = request.args.get('data_inicio')
+    data_fim = request.args.get('data_fim')
+    lote = request.args.get('lote')
+    placa = request.args.get('placa')
+    
+    # Construir query com filtros
+    query = Pesagem.query
+    
+    if data_inicio:
+        try:
+            data_inicio_obj = datetime.strptime(data_inicio, '%Y-%m-%d')
+            query = query.filter(Pesagem.data >= data_inicio_obj)
+        except ValueError:
+            pass
+    
+    if data_fim:
+        try:
+            data_fim_obj = datetime.strptime(data_fim, '%Y-%m-%d')
+            query = query.filter(Pesagem.data <= data_fim_obj)
+        except ValueError:
+            pass
+    
+    if lote and lote.isdigit():
+        query = query.filter(Pesagem.lote == int(lote))
+    
+    if placa:
+        query = query.filter(Pesagem.placa_veiculo.ilike(f'%{placa}%'))
+    
+    pesagens = query.order_by(Pesagem.data.desc()).all()
     
     if not pesagens:
         flash('Nenhuma pesagem encontrada para gerar relatório!', 'warning')
@@ -113,9 +174,14 @@ def relatorio_excel():
     with tempfile.NamedTemporaryFile(delete=False, suffix='.xlsx') as tmp_file:
         gerar_relatorio_excel(pesagens, tmp_file.name)
         
+        # Nome do arquivo com filtros
+        filename_suffix = datetime.now().strftime("%Y%m%d")
+        if data_inicio or data_fim or lote or placa:
+            filename_suffix += "_filtrado"
+        
         # Enviar arquivo
         response = make_response(send_file(tmp_file.name, as_attachment=True, 
-                                         download_name=f'relatorio_pesagens_{datetime.now().strftime("%Y%m%d")}.xlsx'))
+                                         download_name=f'relatorio_pesagens_{filename_suffix}.xlsx'))
         
         # Agendar limpeza do arquivo temporário
         @response.call_on_close
@@ -130,7 +196,36 @@ def relatorio_excel():
 @app.route('/relatorio/csv')
 def relatorio_csv():
     """Gerar relatório em CSV"""
-    pesagens = Pesagem.query.order_by(Pesagem.data.desc()).all()
+    # Obter parâmetros de filtro
+    data_inicio = request.args.get('data_inicio')
+    data_fim = request.args.get('data_fim')
+    lote = request.args.get('lote')
+    placa = request.args.get('placa')
+    
+    # Construir query com filtros
+    query = Pesagem.query
+    
+    if data_inicio:
+        try:
+            data_inicio_obj = datetime.strptime(data_inicio, '%Y-%m-%d')
+            query = query.filter(Pesagem.data >= data_inicio_obj)
+        except ValueError:
+            pass
+    
+    if data_fim:
+        try:
+            data_fim_obj = datetime.strptime(data_fim, '%Y-%m-%d')
+            query = query.filter(Pesagem.data <= data_fim_obj)
+        except ValueError:
+            pass
+    
+    if lote and lote.isdigit():
+        query = query.filter(Pesagem.lote == int(lote))
+    
+    if placa:
+        query = query.filter(Pesagem.placa_veiculo.ilike(f'%{placa}%'))
+    
+    pesagens = query.order_by(Pesagem.data.desc()).all()
     
     if not pesagens:
         flash('Nenhuma pesagem encontrada para gerar relatório!', 'warning')
@@ -158,9 +253,14 @@ def relatorio_csv():
             f'R$ {pesagem.valor_carga:.2f}'
         ])
     
+    # Nome do arquivo com filtros
+    filename_suffix = datetime.now().strftime("%Y%m%d")
+    if data_inicio or data_fim or lote or placa:
+        filename_suffix += "_filtrado"
+    
     response = make_response(output.getvalue())
     response.headers['Content-Type'] = 'text/csv'
-    response.headers['Content-Disposition'] = f'attachment; filename=relatorio_pesagens_{datetime.now().strftime("%Y%m%d")}.csv'
+    response.headers['Content-Disposition'] = f'attachment; filename=relatorio_pesagens_{filename_suffix}.csv'
     
     return response
 

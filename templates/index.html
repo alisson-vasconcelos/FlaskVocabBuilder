@@ -12,7 +12,65 @@
             </a>
         </div>
         
+        <!-- Filtros -->
+        <div class="filter-section">
+            <h5><i class="fas fa-filter"></i> Filtros</h5>
+            <form method="GET" action="{{ url_for('index') }}" class="row g-3">
+                <div class="col-md-3">
+                    <label for="data_inicio" class="form-label">Data Início</label>
+                    <input type="date" class="form-control" id="data_inicio" name="data_inicio" 
+                           value="{{ data_inicio or '' }}">
+                </div>
+                <div class="col-md-3">
+                    <label for="data_fim" class="form-label">Data Fim</label>
+                    <input type="date" class="form-control" id="data_fim" name="data_fim" 
+                           value="{{ data_fim or '' }}">
+                </div>
+                <div class="col-md-2">
+                    <label for="lote" class="form-label">Lote</label>
+                    <select class="form-control" id="lote" name="lote">
+                        <option value="">Todos</option>
+                        <option value="3" {{ 'selected' if lote == '3' else '' }}>Lote 3</option>
+                        <option value="5" {{ 'selected' if lote == '5' else '' }}>Lote 5</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label for="placa" class="form-label">Placa</label>
+                    <input type="text" class="form-control" id="placa" name="placa" 
+                           value="{{ placa or '' }}" placeholder="Ex: ABC-1234">
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">&nbsp;</label>
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-search"></i> Filtrar
+                        </button>
+                        <a href="{{ url_for('index') }}" class="btn btn-outline-secondary">
+                            <i class="fas fa-times"></i> Limpar
+                        </a>
+                    </div>
+                </div>
+            </form>
+        </div>
+        
         {% if pesagens %}
+            <!-- Botões de Exportação -->
+            <div class="d-flex justify-content-end mb-3">
+                <div class="btn-group">
+                    <button type="button" class="btn btn-success dropdown-toggle" data-bs-toggle="dropdown">
+                        <i class="fas fa-download"></i> Exportar
+                    </button>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item" href="{{ url_for('relatorio_excel', data_inicio=data_inicio, data_fim=data_fim, lote=lote, placa=placa) }}">
+                            <i class="fas fa-file-excel"></i> Excel
+                        </a></li>
+                        <li><a class="dropdown-item" href="{{ url_for('relatorio_csv', data_inicio=data_inicio, data_fim=data_fim, lote=lote, placa=placa) }}">
+                            <i class="fas fa-file-csv"></i> CSV
+                        </a></li>
+                    </ul>
+                </div>
+            </div>
+            
             <div class="card">
                 <div class="card-body">
                     <div class="table-responsive">
@@ -63,33 +121,37 @@
             
             <!-- Estatísticas -->
             <div class="row mt-4">
-                <div class="col-md-3">
-                    <div class="card bg-primary text-white">
-                        <div class="card-body">
+                <div class="col-md-3 mb-3">
+                    <div class="card stats-card">
+                        <div class="card-body text-center">
+                            <i class="fas fa-clipboard-list fa-2x mb-3"></i>
                             <h5 class="card-title">Total de Pesagens</h5>
                             <h3>{{ pesagens|length }}</h3>
                         </div>
                     </div>
                 </div>
-                <div class="col-md-3">
-                    <div class="card bg-success text-white">
-                        <div class="card-body">
+                <div class="col-md-3 mb-3">
+                    <div class="card stats-card bg-success">
+                        <div class="card-body text-center">
+                            <i class="fas fa-weight-hanging fa-2x mb-3"></i>
                             <h5 class="card-title">Peso Total</h5>
                             <h3>{{ '{:,.0f}'.format(pesagens|sum(attribute='quantidade_kg')) }} kg</h3>
                         </div>
                     </div>
                 </div>
-                <div class="col-md-3">
-                    <div class="card bg-info text-white">
-                        <div class="card-body">
+                <div class="col-md-3 mb-3">
+                    <div class="card stats-card bg-info">
+                        <div class="card-body text-center">
+                            <i class="fas fa-dollar-sign fa-2x mb-3"></i>
                             <h5 class="card-title">Valor Total</h5>
                             <h3>R$ {{ '{:,.2f}'.format(pesagens|sum(attribute='valor_carga')) }}</h3>
                         </div>
                     </div>
                 </div>
-                <div class="col-md-3">
-                    <div class="card bg-warning text-dark">
-                        <div class="card-body">
+                <div class="col-md-3 mb-3">
+                    <div class="card stats-card bg-warning">
+                        <div class="card-body text-center">
+                            <i class="fas fa-balance-scale fa-2x mb-3"></i>
                             <h5 class="card-title">Média por Carga</h5>
                             <h3>{{ '{:,.0f}'.format((pesagens|sum(attribute='quantidade_kg'))/pesagens|length) }} kg</h3>
                         </div>
