@@ -8,6 +8,13 @@ This is a Flask-based web application for managing truck weighing operations. Th
 
 Preferred communication style: Simple, everyday language.
 
+## Recent Changes
+
+- **January 2025**: Added comprehensive vehicle management system with CRUD operations
+- **January 2025**: Implemented modern light theme design with Inter typography and gradient styling
+- **January 2025**: Added advanced filtering system for reports (date range, lot, plate, vehicle selection)
+- **January 2025**: Integrated vehicle dropdown lists in weighing forms with auto-complete functionality
+
 ## System Architecture
 
 ### Backend Architecture
@@ -31,16 +38,30 @@ Preferred communication style: Simple, everyday language.
 ## Key Components
 
 ### Models (models.py)
+- **Veiculo Model**: Vehicle registration and management
+  - Fields: plate, brand, model, year, color, default driver, active status
+  - Unique plate constraint with case-insensitive search
+  - One-to-many relationship with weighing records
+  - Active/inactive status for filtering
+  
 - **Pesagem Model**: Core entity storing truck weighing data
   - Fields: location data, date, vehicle plate, driver, product type, weight, lot, value
+  - Foreign key relationship to Veiculo model
   - Automatic timestamp tracking
   - Dictionary conversion for JSON serialization
 
 ### Routes (routes.py)
-- **Home Route** (`/`): Lists all weighing records
-- **Registration Route** (`/registro`): Form for new weighing entries
+- **Home Route** (`/`): Lists all weighing records with advanced filtering
+- **Registration Route** (`/registro`): Form for new weighing entries with vehicle autocomplete
+- **Vehicle Routes**: Complete CRUD operations for vehicle management
+  - `/veiculos`: List all vehicles with statistics
+  - `/veiculos/novo`: Add new vehicle
+  - `/veiculos/<id>/editar`: Edit existing vehicle
+  - `/veiculos/<id>/toggle-status`: Activate/deactivate vehicle
+- **API Routes**: RESTful endpoints for vehicle data
+  - `/api/veiculo/<plate>`: Get vehicle information by plate
 - **Ticket Routes**: PDF generation and viewing for individual records
-- **Report Routes**: Excel and CSV export functionality
+- **Report Routes**: Excel and CSV export functionality with filtering
 
 ### Utilities (utils.py)
 - **Lot Calculation**: Determines lot category (3 or 5) based on pickup location

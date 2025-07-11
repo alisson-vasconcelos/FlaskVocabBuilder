@@ -1,0 +1,109 @@
+{% extends "base.html" %}
+
+{% block title %}Editar Veículo - Sistema de Pesagem{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h4 class="mb-0"><i class="fas fa-edit"></i> Editar Veículo - {{ veiculo.placa }}</h4>
+            </div>
+            <div class="card-body">
+                <form method="POST" id="form-veiculo">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="placa" class="form-label">Placa <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="placa" name="placa" 
+                                       required placeholder="Ex: ABC-1234" maxlength="8" 
+                                       value="{{ veiculo.placa }}" style="text-transform: uppercase;">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="marca" class="form-label">Marca <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="marca" name="marca" 
+                                       required placeholder="Ex: Mercedes-Benz, Volvo, Scania"
+                                       value="{{ veiculo.marca }}">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="modelo" class="form-label">Modelo <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="modelo" name="modelo" 
+                                       required placeholder="Ex: Actros, FH, R450"
+                                       value="{{ veiculo.modelo }}">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="ano" class="form-label">Ano</label>
+                                <input type="number" class="form-control" id="ano" name="ano" 
+                                       min="1900" max="2030" placeholder="Ex: 2020"
+                                       value="{{ veiculo.ano if veiculo.ano else '' }}">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="cor" class="form-label">Cor</label>
+                                <input type="text" class="form-control" id="cor" name="cor" 
+                                       placeholder="Ex: Branco, Azul, Vermelho"
+                                       value="{{ veiculo.cor if veiculo.cor else '' }}">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="motorista_padrao" class="form-label">Motorista Padrão</label>
+                                <input type="text" class="form-control" id="motorista_padrao" name="motorista_padrao" 
+                                       placeholder="Nome do motorista principal"
+                                       value="{{ veiculo.motorista_padrao if veiculo.motorista_padrao else '' }}">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <a href="{{ url_for('veiculos') }}" class="btn btn-secondary">
+                            <i class="fas fa-times"></i> Cancelar
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save"></i> Salvar Alterações
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const placaInput = document.getElementById('placa');
+    
+    // Converter placa para maiúscula
+    placaInput.addEventListener('input', function() {
+        this.value = this.value.toUpperCase();
+    });
+    
+    // Validação da placa
+    placaInput.addEventListener('blur', function() {
+        const placa = this.value.trim();
+        if (placa.length >= 7) {
+            this.classList.add('is-valid');
+            this.classList.remove('is-invalid');
+        } else if (placa.length > 0) {
+            this.classList.add('is-invalid');
+            this.classList.remove('is-valid');
+        }
+    });
+});
+</script>
+{% endblock %}

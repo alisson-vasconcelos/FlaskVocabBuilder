@@ -74,7 +74,15 @@
                             <div class="mb-3">
                                 <label for="placa_veiculo" class="form-label">Placa do Veículo <span class="text-danger">*</span></label>
                                 <input type="text" class="form-control" id="placa_veiculo" name="placa_veiculo" 
-                                       required placeholder="Ex: ABC-1234" maxlength="8" style="text-transform: uppercase;">
+                                       required placeholder="Ex: ABC-1234" maxlength="8" style="text-transform: uppercase;" 
+                                       list="veiculos-list">
+                                <datalist id="veiculos-list">
+                                    {% for veiculo in veiculos %}
+                                    <option value="{{ veiculo.placa }}" data-motorista="{{ veiculo.motorista_padrao or '' }}">
+                                        {{ veiculo.placa }} - {{ veiculo.marca }} {{ veiculo.modelo }}
+                                    </option>
+                                    {% endfor %}
+                                </datalist>
                             </div>
                         </div>
                     </div>
@@ -149,9 +157,25 @@ document.addEventListener('DOMContentLoaded', function() {
         dataInput.value = dataFormatada;
     }
     
-    // Converter placa para maiúscula
+    // Converter placa para maiúscula e buscar dados do veículo
     placaVeiculo.addEventListener('input', function() {
         this.value = this.value.toUpperCase();
+        
+        // Buscar informações do veículo
+        const placa = this.value.trim();
+        if (placa.length >= 7) {
+            fetch(`/api/veiculo/${placa}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.exists && data.motorista_padrao) {
+                        const motoristaInput = document.getElementById('motorista');
+                        if (!motoristaInput.value) {
+                            motoristaInput.value = data.motorista_padrao;
+                        }
+                    }
+                })
+                .catch(error => console.log('Erro ao buscar dados do veículo:', error));
+        }
     });
     
     // Calcular valor estimado
