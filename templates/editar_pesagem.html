@@ -1,0 +1,173 @@
+{% extends "base.html" %}
+
+{% block title %}Editar Pesagem - Sistema de Pesagem{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-10">
+        <div class="card">
+            <div class="card-header">
+                <h4 class="mb-0">
+                    <i class="fas fa-edit"></i> Editar Pesagem - {{ pesagem.placa_veiculo }}
+                </h4>
+            </div>
+            <div class="card-body">
+                <form method="POST" id="form-pesagem">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="local_carga" class="form-label">Local de Carga <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="local_carga" name="local_carga" 
+                                       required placeholder="Ex: São Paulo, SP"
+                                       value="{{ pesagem.local_carga }}">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="local_descarga" class="form-label">Local de Descarga <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="local_descarga" name="local_descarga" 
+                                       required placeholder="Ex: Rio de Janeiro, RJ"
+                                       value="{{ pesagem.local_descarga }}">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="data" class="form-label">Data de Descarga <span class="text-danger">*</span></label>
+                                <input type="date" class="form-control" id="data" name="data" 
+                                       required value="{{ pesagem.data.strftime('%Y-%m-%d') }}">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="placa_veiculo" class="form-label">Placa do Veículo <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="placa_veiculo" name="placa_veiculo" 
+                                       required placeholder="Ex: ABC-1234" maxlength="8" style="text-transform: uppercase;" 
+                                       list="veiculos-list" value="{{ pesagem.placa_veiculo }}">
+                                <datalist id="veiculos-list">
+                                    {% for veiculo in veiculos %}
+                                    <option value="{{ veiculo.placa }}" data-motorista="{{ veiculo.motorista_padrao or '' }}">
+                                        {{ veiculo.placa }} - {{ veiculo.marca }} {{ veiculo.modelo }}
+                                    </option>
+                                    {% endfor %}
+                                </datalist>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="motorista" class="form-label">Motorista <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="motorista" name="motorista" 
+                                       required placeholder="Nome do motorista"
+                                       value="{{ pesagem.motorista }}">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="quantidade_kg" class="form-label">Quantidade (Kg) <span class="text-danger">*</span></label>
+                                <input type="number" class="form-control" id="quantidade_kg" name="quantidade_kg" 
+                                       required min="0" step="0.01" placeholder="Ex: 25000"
+                                       value="{{ pesagem.quantidade_kg }}">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Informações calculadas -->
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Lote Atual</label>
+                                <div class="form-control-plaintext">
+                                    <span class="badge bg-info fs-6">Lote {{ pesagem.lote }}</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Valor Atual da Carga</label>
+                                <div class="form-control-plaintext">
+                                    <span class="text-success fw-bold fs-5">R$ {{ '{:,.2f}'.format(pesagem.valor_carga) }}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle"></i>
+                        <strong>Nota:</strong> O lote e valor da carga serão recalculados automaticamente baseado no local de carga e quantidade informados.
+                    </div>
+                    
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <a href="{{ url_for('index') }}" class="btn btn-secondary">
+                            <i class="fas fa-times"></i> Cancelar
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save"></i> Salvar Alterações
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const placaVeiculo = document.getElementById('placa_veiculo');
+    const motoristaInput = document.getElementById('motorista');
+    
+    // Converter placa para maiúscula e buscar dados do veículo
+    placaVeiculo.addEventListener('input', function() {
+        this.value = this.value.toUpperCase();
+        
+        // Buscar informações do veículo
+        const placa = this.value.trim();
+        if (placa.length >= 7) {
+            fetch(`/api/veiculo/${placa}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.exists && data.motorista_padrao) {
+                        if (!motoristaInput.value || motoristaInput.value === motoristaInput.dataset.original) {
+                            motoristaInput.value = data.motorista_padrao;
+                        }
+                    }
+                })
+                .catch(error => console.log('Erro ao buscar dados do veículo:', error));
+        }
+    });
+    
+    // Guardar valor original do motorista
+    motoristaInput.dataset.original = motoristaInput.value;
+    
+    // Validação de campos numéricos
+    const quantidadeInput = document.getElementById('quantidade_kg');
+    quantidadeInput.addEventListener('input', function() {
+        if (this.value <= 0) {
+            this.classList.add('is-invalid');
+            this.classList.remove('is-valid');
+        } else {
+            this.classList.add('is-valid');
+            this.classList.remove('is-invalid');
+        }
+    });
+    
+    // Validação da placa
+    placaVeiculo.addEventListener('blur', function() {
+        const placa = this.value.trim();
+        if (placa.length >= 7) {
+            this.classList.add('is-valid');
+            this.classList.remove('is-invalid');
+        } else if (placa.length > 0) {
+            this.classList.add('is-invalid');
+            this.classList.remove('is-valid');
+        }
+    });
+});
+</script>
+{% endblock %}

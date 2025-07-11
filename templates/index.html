@@ -120,6 +120,17 @@
                                                title="Baixar PDF">
                                                 <i class="fas fa-download"></i>
                                             </a>
+                                            <a href="{{ url_for('editar_pesagem', pesagem_id=pesagem.id) }}" 
+                                               class="btn btn-sm btn-outline-warning" 
+                                               title="Editar">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                            <button type="button" 
+                                                    class="btn btn-sm btn-outline-danger" 
+                                                    title="Excluir"
+                                                    onclick="confirmarExclusao({{ pesagem.id }}, '{{ pesagem.placa_veiculo }}', '{{ pesagem.data.strftime('%d/%m/%Y') }}')">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
                                         </div>
                                     </td>
                                 </tr>
@@ -181,4 +192,49 @@
         {% endif %}
     </div>
 </div>
+
+<!-- Modal de Confirmação de Exclusão -->
+<div class="modal fade" id="modalConfirmacao" tabindex="-1" aria-labelledby="modalConfirmacaoLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalConfirmacaoLabel">
+                    <i class="fas fa-exclamation-triangle text-warning"></i> Confirmar Exclusão
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Tem certeza que deseja excluir esta pesagem?</p>
+                <div class="alert alert-warning">
+                    <strong>Placa:</strong> <span id="modalPlaca"></span><br>
+                    <strong>Data:</strong> <span id="modalData"></span><br>
+                    <small class="text-muted">Esta ação não poderá ser desfeita.</small>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times"></i> Cancelar
+                </button>
+                <form method="POST" id="formExclusao" style="display: inline;">
+                    <button type="submit" class="btn btn-danger">
+                        <i class="fas fa-trash"></i> Excluir
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function confirmarExclusao(id, placa, data) {
+    document.getElementById('modalPlaca').textContent = placa;
+    document.getElementById('modalData').textContent = data;
+    document.getElementById('formExclusao').action = `/pesagem/${id}/excluir`;
+    
+    const modal = new bootstrap.Modal(document.getElementById('modalConfirmacao'));
+    modal.show();
+}
+</script>
 {% endblock %}

@@ -397,6 +397,83 @@ def get_veiculo_info(placa):
         })
     return jsonify({'exists': False})
 
+@app.route('/pesagem/<int:pesagem_id>/editar', methods=['GET', 'POST'])
+def editar_pesagem(pesagem_id):
+    """Editar pesagem existente"""
+    pesagem = Pesagem.query.get_or_404(pesagem_id)
+    
+    if request.method == 'POST':
+        try:
+            # Coletar dados do formulário
+            local_carga = request.form.get('local_carga').strip()
+            local_descarga = request.form.get('local_descarga').strip()
+            data_str = request.form.get('data')
+            placa_veiculo = request.form.get('placa_veiculo').strip().upper()
+            motorista = request.form.get('motorista').strip()
+            quantidade_kg = float(request.form.get('quantidade_kg', 0))
+            
+            # Validações básicas
+            if not all([local_carga, local_descarga, data_str, placa_veiculo, motorista]):
+                flash('Todos os campos são obrigatórios!', 'error')
+                return render_template('editar_pesagem.html', pesagem=pesagem, veiculos=Veiculo.query.filter_by(ativo=True).all())
+            
+            if quantidade_kg <= 0:
+                flash('A quantidade deve ser maior que zero!', 'error')
+                return render_template('editar_pesagem.html', pesagem=pesagem, veiculos=Veiculo.query.filter_by(ativo=True).all())
+            
+            # Converter data
+            data = datetime.strptime(data_str, '%Y-%m-%d')
+            
+            # Calcular lote e valor
+            lote, valor_carga = calcular_lote_e_valor(local_carga, quantidade_kg)
+            
+            if lote is None:
+                flash('Local de carga não encontrado na lista de cidades cadastradas!', 'error')
+                return render_template('editar_pesagem.html', pesagem=pesagem, veiculos=Veiculo.query.filter_by(ativo=True).all())
+            
+            # Buscar veículo pelo placa
+            veiculo = Veiculo.query.filter_by(placa=placa_veiculo).first()
+            
+            # Atualizar dados da pesagem
+            pesagem.local_carga = local_carga
+            pesagem.local_descarga = local_descarga
+            pesagem.data = data
+            pesagem.placa_veiculo = placa_veiculo
+            pesagem.veiculo_id = veiculo.id if veiculo else None
+            pesagem.motorista = motorista
+            pesagem.quantidade_kg = quantidade_kg
+            pesagem.lote = lote
+            pesagem.valor_carga = valor_carga
+            
+            db.session.commit()
+            
+            flash('Pesagem atualizada com sucesso!', 'success')
+            return redirect(url_for('index'))
+            
+        except ValueError as e:
+            flash('Erro nos dados fornecidos. Verifique os campos numéricos e de data.', 'error')
+        except Exception as e:
+            flash(f'Erro ao atualizar registro: {str(e)}', 'error')
+            db.session.rollback()
+    
+    veiculos = Veiculo.query.filter_by(ativo=True).all()
+    return render_template('editar_pesagem.html', pesagem=pesagem, veiculos=veiculos)
+
+@app.route('/pesagem/<int:pesagem_id>/excluir', methods=['POST'])
+def excluir_pesagem(pesagem_id):
+    """Excluir pesagem"""
+    pesagem = Pesagem.query.get_or_404(pesagem_id)
+    
+    try:
+        db.session.delete(pesagem)
+        db.session.commit()
+        flash('Pesagem excluída com sucesso!', 'success')
+    except Exception as e:
+        flash(f'Erro ao excluir registro: {str(e)}', 'error')
+        db.session.rollback()
+    
+    return redirect(url_for('index'))
+
 @app.errorhandler(404)
 def not_found(error):
     return render_template('404.html'), 404
