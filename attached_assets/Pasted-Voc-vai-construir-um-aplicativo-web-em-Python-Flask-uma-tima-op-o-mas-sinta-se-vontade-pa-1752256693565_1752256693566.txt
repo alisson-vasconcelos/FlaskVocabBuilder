@@ -1,0 +1,51 @@
+Você vai construir um **aplicativo web em Python (Flask é uma ótima opção, mas sinta-se à vontade para usar outro framework web Python se preferir)** que funcionará como um sistema de registro de pesagens para caminhões.
+
+Seu aplicativo deve incluir:
+
+1.  **Um formulário web** com os seguintes campos para registro de cada pesagem:
+    * **Local da Carga:** Campo de texto (ou selectbox, se preferir, com as cidades listadas abaixo).
+    * **Local da Descarga:** Campo de texto.
+    * **Data:** Campo de data.
+    * **Placa do Veículo:** Campo de texto.
+    * **Motorista:** Campo de texto.
+    * **Tipo de Produto Transportado:** Campo de texto pré-preenchido ou somente leitura com o valor 'Triturado'.
+    * **Quantidade em Quilos (Kg):** Campo numérico.
+
+2.  **Lógica para calcular o valor da carga:**
+    * Crie duas categorias de "Lote" com base no **Local da Carga**:
+        * **Lote 3:** Para as cidades: Guará; Arniqueiras; Águas Claras; Park Way; Núcleo Bandeirante; Candangolândia; SCIA/Estrutural; Vicente Pires; Riacho Fundo I; Sobradinho; Sobradinho II; Fercal; Planaltina; Arapoanga; Paranoá; Itapoã. O valor por **tonelada carregada (1000 kg)** é de **R$ 575,75**.
+        * **Lote 5:** Para as cidades: Lago Sul; Jardim Botânico; São Sebastião; Brazlândia; Ceilândia; Taguatinga; Sol Nascente/Por do Sol; Gama; Santa Maria; Recanto das Emas; Água Quente; Samambaia; Riacho Fundo II. O valor por **tonelada carregada (1000 kg)** é de **R$ 591,82**.
+    * A fórmula para o 'Valor da Carga' é: `(Quantidade em Kg / 1000) * Valor por tonelada do Lote correspondente`.
+
+3.  **Armazenamento dos Dados:** Os dados de cada registro (e o valor calculado) devem ser persistidos de alguma forma (ex: Replit DB, um arquivo JSON simples, ou um pequeno banco de dados SQLite).
+
+4.  **Impressão de Ticket de Pesagem:** Para cada registro salvo, crie uma funcionalidade (ex: um botão ao lado do registro, ou na tela de detalhes) que permita **visualizar ou gerar um "ticket de pesagem" individual**. Este ticket deve conter as seguintes informações, **seguindo um layout similar ao do modelo fornecido (Anexo: image_5194dc.png)**:
+    * Data
+    * Local da Carga
+    * Placa do Veículo
+    * Motorista
+    * Tipo de Produto Transportado (Triturado)
+    * Quantidade em Quilos
+
+    *Sua implementação não precisa ser pixel-perfect, mas deve tentar replicar a disposição e inclusão das informações relevantes do ticket.*
+
+5.  **Relatório em Planilha:** Crie uma funcionalidade (ex: um botão na página) que permita **gerar e baixar um arquivo de planilha (CSV ou Excel)** com os seguintes cabeçalhos de coluna, contendo todos os registros de pesagem:
+    * **Placa**
+    * **Motorista**
+    * **Cidade (Local de Carga)**
+    * **Lote (3 ou 5)**
+    * **Data da Descarga (Data vindo do formulário)**
+    * **Kg (Quilos)**
+    * **Valor da Carga**
+
+Durante a execução desta tarefa, por favor, **pense em voz alta** e comente sobre sua experiência, focando nos seguintes pontos:
+
+* **Configuração do Ambiente:** Quão fácil foi configurar seu ambiente para trabalhar com um formulário web, persistência de dados e geração de documentos? Você precisou instalar alguma biblioteca (ex: Flask, pandas, fpdf, reportlab, openpyxl)? Foi intuitivo?
+* **Construção do Formulário:** Como você avalia a criação e validação dos campos do formulário? Foi fácil para você garantir que os dados corretos fossem inseridos?
+* **Implementação da Lógica de Negócio:** Quão desafiador foi implementar a lógica de cálculo do valor da carga e a classificação por 'Lote'? Você achou as ferramentas do Replit adequadas para isso?
+* **Persistência de Dados:** Como foi a experiência de salvar e recuperar os dados das pesagens? Você encontrou alguma dificuldade com o método de armazenamento escolhido?
+* **Geração do Ticket de Pesagem:** Quão fácil ou difícil foi gerar o ticket de pesagem individual com as informações e o layout similar ao do modelo? Você encontrou bibliotecas ou recursos no Replit que te auxiliaram nessa tarefa (ex: para gerar PDF ou HTML para impressão)?
+* **Geração do Relatório (Planilha):** Quão fácil ou difícil foi gerar o arquivo de planilha com os dados formatados? Você encontrou bibliotecas ou recursos no Replit que te auxiliaram nessa tarefa?
+* **Impressões Gerais sobre o Replit:** Quais são seus sentimentos gerais sobre o uso do Replit para desenvolver uma aplicação com formulário, lógica, geração de documentos (tickets) e relatórios (planilhas)? Há algo que você achou particularmente bom ou frustrante para este tipo de projeto?
+
+Ao final, seu aplicativo deve estar funcionando, permitindo o registro de novas pesagens, a geração de tickets individuais e a geração do relatório em planilha."
