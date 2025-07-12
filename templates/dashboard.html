@@ -1,0 +1,398 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard BI - Sistema de Pesagem{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2><i class="fas fa-chart-line"></i> Dashboard Business Intelligence</h2>
+                
+                <!-- Filtros de Data -->
+                <div class="d-flex gap-2">
+                    <form method="GET" action="{{ url_for('dashboard') }}" class="d-flex gap-2">
+                        <input type="date" class="form-control" name="data_inicio" value="{{ data_inicio }}" title="Data Início">
+                        <input type="date" class="form-control" name="data_fim" value="{{ data_fim }}" title="Data Fim">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-filter"></i> Filtrar
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Resumo Executivo -->
+    <div class="row mb-4">
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card stats-card border-0 shadow-sm">
+                <div class="card-body text-center">
+                    <div class="stats-icon bg-primary text-white rounded-circle mx-auto mb-3">
+                        <i class="fas fa-clipboard-list fa-2x"></i>
+                    </div>
+                    <h6 class="text-muted">Total de Pesagens</h6>
+                    <h3 class="fw-bold text-primary">{{ total_pesagens }}</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card stats-card border-0 shadow-sm">
+                <div class="card-body text-center">
+                    <div class="stats-icon bg-success text-white rounded-circle mx-auto mb-3">
+                        <i class="fas fa-weight-hanging fa-2x"></i>
+                    </div>
+                    <h6 class="text-muted">Peso Total</h6>
+                    <h3 class="fw-bold text-success">{{ '{:,.0f}'.format(peso_total) }} kg</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card stats-card border-0 shadow-sm">
+                <div class="card-body text-center">
+                    <div class="stats-icon bg-info text-white rounded-circle mx-auto mb-3">
+                        <i class="fas fa-dollar-sign fa-2x"></i>
+                    </div>
+                    <h6 class="text-muted">Valor Total</h6>
+                    <h3 class="fw-bold text-info">R$ {{ '{:,.2f}'.format(valor_total) }}</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card stats-card border-0 shadow-sm">
+                <div class="card-body text-center">
+                    <div class="stats-icon bg-warning text-white rounded-circle mx-auto mb-3">
+                        <i class="fas fa-calculator fa-2x"></i>
+                    </div>
+                    <h6 class="text-muted">Média por Carga</h6>
+                    <h3 class="fw-bold text-warning">{{ '{:,.0f}'.format(peso_total / total_pesagens if total_pesagens > 0 else 0) }} kg</h3>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Gráficos Principais -->
+    <div class="row mb-4">
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-transparent">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-chart-line text-primary"></i> Evolução Diária das Pesagens
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="chartPesagensDiario" height="300"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-transparent">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-chart-pie text-success"></i> Distribuição por Lote
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="chartLotes" height="300"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Gráficos Secundários -->
+    <div class="row mb-4">
+        <div class="col-lg-6">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-transparent">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-chart-bar text-info"></i> Top 10 Cidades de Carga
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="chartCidades" height="300"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-6">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-transparent">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-truck text-warning"></i> Top 10 Veículos Mais Ativos
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="chartVeiculos" height="300"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tabelas Detalhadas -->
+    <div class="row">
+        <div class="col-lg-6">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-transparent">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-users text-primary"></i> Top 10 Motoristas
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Motorista</th>
+                                    <th class="text-center">Pesagens</th>
+                                    <th class="text-end">Peso Total</th>
+                                    <th class="text-end">Valor Total</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for motorista in motoristas %}
+                                <tr>
+                                    <td class="fw-bold">{{ motorista.motorista }}</td>
+                                    <td class="text-center">
+                                        <span class="badge bg-primary">{{ motorista.quantidade }}</span>
+                                    </td>
+                                    <td class="text-end">{{ '{:,.0f}'.format(motorista.peso_total) }} kg</td>
+                                    <td class="text-end text-success fw-bold">R$ {{ '{:,.2f}'.format(motorista.valor_total) }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-6">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-transparent">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-map-marker-alt text-success"></i> Análise por Local de Carga
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Cidade</th>
+                                    <th class="text-center">Pesagens</th>
+                                    <th class="text-end">Peso Total</th>
+                                    <th class="text-end">Valor Total</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for cidade in cidades_carga %}
+                                <tr>
+                                    <td class="fw-bold">{{ cidade.local_carga }}</td>
+                                    <td class="text-center">
+                                        <span class="badge bg-success">{{ cidade.quantidade }}</span>
+                                    </td>
+                                    <td class="text-end">{{ '{:,.0f}'.format(cidade.peso_total) }} kg</td>
+                                    <td class="text-end text-success fw-bold">R$ {{ '{:,.2f}'.format(cidade.valor_total) }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Informações do Período -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="alert alert-info">
+                <i class="fas fa-info-circle"></i>
+                <strong>Período Analisado:</strong> {{ data_inicio }} até {{ data_fim }} 
+                ({{ dias_periodo }} dias)
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+// Dados dos gráficos
+const dadosGrafico = {{ dados_grafico|safe }};
+
+// Configuração de cores
+const cores = {
+    primary: '#0d6efd',
+    success: '#198754',
+    info: '#0dcaf0',
+    warning: '#ffc107',
+    danger: '#dc3545',
+    secondary: '#6c757d'
+};
+
+// Gráfico de Pesagens Diárias
+const ctxDiario = document.getElementById('chartPesagensDiario').getContext('2d');
+new Chart(ctxDiario, {
+    type: 'line',
+    data: {
+        labels: dadosGrafico.pesagens_por_dia.map(item => {
+            const data = new Date(item.data);
+            return data.toLocaleDateString('pt-BR');
+        }),
+        datasets: [{
+            label: 'Quantidade de Pesagens',
+            data: dadosGrafico.pesagens_por_dia.map(item => item.quantidade),
+            borderColor: cores.primary,
+            backgroundColor: cores.primary + '20',
+            fill: true,
+            tension: 0.4
+        }, {
+            label: 'Peso Total (toneladas)',
+            data: dadosGrafico.pesagens_por_dia.map(item => item.peso_total / 1000),
+            borderColor: cores.success,
+            backgroundColor: cores.success + '20',
+            fill: false,
+            yAxisID: 'y1'
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            title: {
+                display: true,
+                text: 'Evolução Diária das Pesagens'
+            },
+            legend: {
+                display: true,
+                position: 'top'
+            }
+        },
+        scales: {
+            y: {
+                beginAtZero: true,
+                title: {
+                    display: true,
+                    text: 'Quantidade'
+                }
+            },
+            y1: {
+                type: 'linear',
+                display: true,
+                position: 'right',
+                title: {
+                    display: true,
+                    text: 'Peso (ton)'
+                },
+                grid: {
+                    drawOnChartArea: false,
+                }
+            }
+        }
+    }
+});
+
+// Gráfico de Lotes
+const ctxLotes = document.getElementById('chartLotes').getContext('2d');
+new Chart(ctxLotes, {
+    type: 'doughnut',
+    data: {
+        labels: dadosGrafico.lotes.map(item => `Lote ${item.lote}`),
+        datasets: [{
+            data: dadosGrafico.lotes.map(item => item.quantidade),
+            backgroundColor: [cores.success, cores.info, cores.warning, cores.danger],
+            borderWidth: 0
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            title: {
+                display: true,
+                text: 'Distribuição por Lote'
+            },
+            legend: {
+                position: 'bottom'
+            }
+        }
+    }
+});
+
+// Gráfico de Cidades
+const ctxCidades = document.getElementById('chartCidades').getContext('2d');
+new Chart(ctxCidades, {
+    type: 'bar',
+    data: {
+        labels: dadosGrafico.cidades_carga.map(item => item.cidade),
+        datasets: [{
+            label: 'Quantidade de Pesagens',
+            data: dadosGrafico.cidades_carga.map(item => item.quantidade),
+            backgroundColor: cores.info,
+            borderColor: cores.info,
+            borderWidth: 1
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            title: {
+                display: true,
+                text: 'Top 10 Cidades de Carga'
+            }
+        },
+        scales: {
+            y: {
+                beginAtZero: true,
+                title: {
+                    display: true,
+                    text: 'Quantidade'
+                }
+            },
+            x: {
+                ticks: {
+                    maxRotation: 45,
+                    minRotation: 45
+                }
+            }
+        }
+    }
+});
+
+// Gráfico de Veículos
+const ctxVeiculos = document.getElementById('chartVeiculos').getContext('2d');
+new Chart(ctxVeiculos, {
+    type: 'bar',
+    data: {
+        labels: dadosGrafico.veiculos_ativos.map(item => item.placa),
+        datasets: [{
+            label: 'Quantidade de Pesagens',
+            data: dadosGrafico.veiculos_ativos.map(item => item.quantidade),
+            backgroundColor: cores.warning,
+            borderColor: cores.warning,
+            borderWidth: 1
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            title: {
+                display: true,
+                text: 'Top 10 Veículos Mais Ativos'
+            }
+        },
+        scales: {
+            y: {
+                beginAtZero: true,
+                title: {
+                    display: true,
+                    text: 'Quantidade'
+                }
+            }
+        }
+    }
+});
+</script>
+{% endblock %}

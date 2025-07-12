@@ -2,9 +2,11 @@ from flask import render_template, request, redirect, url_for, flash, make_respo
 from app import app, db
 from models import Pesagem, Veiculo
 from utils import calcular_lote_e_valor, gerar_ticket_pdf, gerar_relatorio_excel
-from datetime import datetime
+from datetime import datetime, timedelta
+from sqlalchemy import func, extract, desc
 import os
 import tempfile
+import json
 
 @app.route('/')
 def index():
@@ -473,6 +475,158 @@ def excluir_pesagem(pesagem_id):
         db.session.rollback()
     
     return redirect(url_for('index'))
+
+@app.route('/dashboard')
+def dashboard():
+    """Dashboard de Business Intelligence com gráficos"""
+    try:
+        # Obter parâmetros de filtro
+        data_inicio = request.args.get('data_inicio')
+        data_fim = request.args.get('data_fim')
+        
+        # Definir período padrão (últimos 30 dias)
+        if not data_inicio or not data_fim:
+            data_fim = datetime.now()
+            data_inicio = data_fim - timedelta(days=30)
+        else:
+            data_inicio = datetime.strptime(data_inicio, '%Y-%m-%d')
+            data_fim = datetime.strptime(data_fim, '%Y-%m-%d')
+        
+        # Query base com filtros de data
+        query = Pesagem.query.filter(
+            Pesagem.data >= data_inicio,
+            Pesagem.data <= data_fim
+        )
+        
+        # Resumo geral
+        total_pesagens = query.count()
+        peso_total = query.with_entities(func.sum(Pesagem.quantidade_kg)).scalar() or 0
+        valor_total = query.with_entities(func.sum(Pesagem.valor_carga)).scalar() or 0
+        
+        # Pesagens por lote
+        lotes = query.with_entities(
+            Pesagem.lote,
+            func.count(Pesagem.id).label('quantidade'),
+            func.sum(Pesagem.quantidade_kg).label('peso_total'),
+            func.sum(Pesagem.valor_carga).label('valor_total')
+        ).group_by(Pesagem.lote).all()
+        
+        # Pesagens por período (últimos 30 dias)
+        pesagens_por_dia = query.with_entities(
+            func.date(Pesagem.data).label('data'),
+            func.count(Pesagem.id).label('quantidade'),
+            func.sum(Pesagem.quantidade_kg).label('peso_total'),
+            func.sum(Pesagem.valor_carga).label('valor_total')
+        ).group_by(func.date(Pesagem.data)).order_by(func.date(Pesagem.data)).all()
+        
+        # Top 10 cidades de carga
+        cidades_carga = query.with_entities(
+            Pesagem.local_carga,
+            func.count(Pesagem.id).label('quantidade'),
+            func.sum(Pesagem.quantidade_kg).label('peso_total'),
+            func.sum(Pesagem.valor_carga).label('valor_total')
+        ).group_by(Pesagem.local_carga).order_by(desc('quantidade')).limit(10).all()
+        
+        # Top 10 veículos mais ativos
+        veiculos_ativos = query.with_entities(
+            Pesagem.placa_veiculo,
+            func.count(Pesagem.id).label('quantidade'),
+            func.sum(Pesagem.quantidade_kg).label('peso_total'),
+            func.sum(Pesagem.valor_carga).label('valor_total')
+        ).group_by(Pesagem.placa_veiculo).order_by(desc('quantidade')).limit(10).all()
+        
+        # Top 10 motoristas
+        motoristas = query.with_entities(
+            Pesagem.motorista,
+            func.count(Pesagem.id).label('quantidade'),
+            func.sum(Pesagem.quantidade_kg).label('peso_total'),
+            func.sum(Pesagem.valor_carga).label('valor_total')
+        ).group_by(Pesagem.motorista).order_by(desc('quantidade')).limit(10).all()
+        
+        # Média mensal (se período > 30 dias)
+        dias_periodo = (data_fim - data_inicio).days
+        if dias_periodo > 30:
+            pesagens_por_mes = query.with_entities(
+                extract('year', Pesagem.data).label('ano'),
+                extract('month', Pesagem.data).label('mes'),
+                func.count(Pesagem.id).label('quantidade'),
+                func.sum(Pesagem.quantidade_kg).label('peso_total'),
+                func.sum(Pesagem.valor_carga).label('valor_total')
+            ).group_by(extract('year', Pesagem.data), extract('month', Pesagem.data)).order_by('ano', 'mes').all()
+        else:
+            pesagens_por_mes = []
+        
+        # Preparar dados para gráficos (JSON)
+        dados_grafico = {
+            'pesagens_por_dia': [
+                {
+                    'data': item.data.strftime('%Y-%m-%d'),
+                    'quantidade': item.quantidade,
+                    'peso_total': float(item.peso_total or 0),
+                    'valor_total': float(item.valor_total or 0)
+                } for item in pesagens_por_dia
+            ],
+            'lotes': [
+                {
+                    'lote': item.lote,
+                    'quantidade': item.quantidade,
+                    'peso_total': float(item.peso_total or 0),
+                    'valor_total': float(item.valor_total or 0)
+                } for item in lotes
+            ],
+            'cidades_carga': [
+                {
+                    'cidade': item.local_carga,
+                    'quantidade': item.quantidade,
+                    'peso_total': float(item.peso_total or 0),
+                    'valor_total': float(item.valor_total or 0)
+                } for item in cidades_carga
+            ],
+            'veiculos_ativos': [
+                {
+                    'placa': item.placa_veiculo,
+                    'quantidade': item.quantidade,
+                    'peso_total': float(item.peso_total or 0),
+                    'valor_total': float(item.valor_total or 0)
+                } for item in veiculos_ativos
+            ],
+            'motoristas': [
+                {
+                    'motorista': item.motorista,
+                    'quantidade': item.quantidade,
+                    'peso_total': float(item.peso_total or 0),
+                    'valor_total': float(item.valor_total or 0)
+                } for item in motoristas
+            ]
+        }
+        
+        if pesagens_por_mes:
+            dados_grafico['pesagens_por_mes'] = [
+                {
+                    'ano': int(item.ano),
+                    'mes': int(item.mes),
+                    'quantidade': item.quantidade,
+                    'peso_total': float(item.peso_total or 0),
+                    'valor_total': float(item.valor_total or 0)
+                } for item in pesagens_por_mes
+            ]
+        
+        return render_template('dashboard.html',
+                             total_pesagens=total_pesagens,
+                             peso_total=peso_total,
+                             valor_total=valor_total,
+                             lotes=lotes,
+                             cidades_carga=cidades_carga,
+                             veiculos_ativos=veiculos_ativos,
+                             motoristas=motoristas,
+                             dados_grafico=json.dumps(dados_grafico),
+                             data_inicio=data_inicio.strftime('%Y-%m-%d'),
+                             data_fim=data_fim.strftime('%Y-%m-%d'),
+                             dias_periodo=dias_periodo)
+    
+    except Exception as e:
+        flash(f'Erro ao carregar dashboard: {str(e)}', 'error')
+        return redirect(url_for('index'))
 
 @app.errorhandler(404)
 def not_found(error):

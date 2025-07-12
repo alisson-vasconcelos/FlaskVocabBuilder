@@ -495,3 +495,83 @@ input[list] {
     transform: translateY(-2px);
     transition: transform 0.2s ease-in-out;
 }
+
+/* Dashboard específico */
+.stats-icon {
+    width: 60px;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.chart-container {
+    position: relative;
+    height: 300px;
+    width: 100%;
+}
+
+.dashboard-card {
+    border: none;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    transition: all 0.3s ease;
+}
+
+.dashboard-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+}
+
+.dashboard-card .card-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 12px 12px 0 0;
+    color: white;
+    padding: 1rem 1.5rem;
+    border: none;
+}
+
+.dashboard-card .card-header h5 {
+    margin: 0;
+    font-weight: 600;
+}
+
+.dashboard-card .card-body {
+    padding: 1.5rem;
+}
+
+/* Tabela do dashboard */
+.table-hover tbody tr:hover {
+    background-color: rgba(102, 126, 234, 0.1);
+}
+
+/* Filtros do dashboard */
+.dashboard-filters {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    border: 1px solid #dee2e6;
+}
+
+/* Estatísticas do dashboard */
+.dashboard-stats .stats-card {
+    background: white;
+    color: #333;
+    border: 1px solid #e9ecef;
+}
+
+.dashboard-stats .stats-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+}
+
+.dashboard-stats .stats-card .stats-icon {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* Gráficos */
+canvas {
+    max-width: 100%;
+    height: auto;
+}
